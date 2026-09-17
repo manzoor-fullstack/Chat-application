@@ -29,12 +29,26 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const config = new DocumentBuilder()
+   const config = new DocumentBuilder()
     .setTitle('SyncSpace API')
-    .setDescription('API documentation for the SyncSpace chat application.')
+    .setDescription(
+      'API documentation for the SyncSpace real-time chat application',
+    )
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        description:
+          'Enter your JWT access token',
+        in: 'header',
+      },
+      'access-token',
+    )
     .build();
+
 
   const documentFactory = () =>
     SwaggerModule.createDocument(app, config);
