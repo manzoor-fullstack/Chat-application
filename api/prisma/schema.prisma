@@ -7,31 +7,52 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+}
+
+enum ConversationParticipantRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  username     String   @unique
+  id           String @id @default(uuid())
+  email        String @unique
+  username     String @unique
   passwordHash String
 
-  avatarUrl    String?
+  avatarUrl String?
 
-  isOnline     Boolean  @default(false)
-  lastSeenAt   DateTime?
+  isOnline   Boolean   @default(false)
+  lastSeenAt DateTime?
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   refreshTokens RefreshToken[]
+
+  conversations ConversationParticipant[]
+  messages      Message[]
+  messageReads  MessageRead[]
 
   @@map("users")
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  tokenHash String   @unique
+  id        String @id @default(uuid())
+  tokenHash String @unique
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   expiresAt DateTime
   revokedAt DateTime?
@@ -41,4 +62,76 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+model Conversation {
+  id   String           @id @default(uuid())
+  type ConversationType
+
+  name     String?
+  imageUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([type])
+}
+
+model ConversationParticipant {
+  id String @id @default(uuid())
+
+  userId         String
+  conversationId String
+  role           ConversationParticipantRole @default(MEMBER)
+  joinedAt       DateTime                    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conversationId])
+  @@index([userId])
+  @@index([conversationId])
+}
+
+model Message {
+  id String @id @default(uuid())
+
+  content String?
+  type    MessageType @default(TEXT)
+
+  senderId       String
+  conversationId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  reads MessageRead[]
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([conversationId, createdAt])
+}
+
+model MessageRead {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reads")
 }
