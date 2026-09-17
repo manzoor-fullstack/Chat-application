@@ -4,6 +4,10 @@ import { ConfigModule } from '@nestjs/config';
 import { envValidationSchema } from './config/env.validation';
 import { PrismaModule } from './database/prisma.module';
 import { AppService } from './app.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { PasswordModule } from './common/password/password.module';
+import { ConversationsModule } from './modules/conversations/conversations.module';
+import { MessagesModule } from './modules/messages/messages.module';
 
 @Module({
   imports: [
@@ -12,6 +16,10 @@ import { AppService } from './app.service';
       validationSchema: envValidationSchema,
     }),
     PrismaModule,
+    AuthModule,
+    PasswordModule,
+    ConversationsModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
