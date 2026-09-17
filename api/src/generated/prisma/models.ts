@@ -10,4 +10,8 @@
  */
 export type * from './models/User'
 export type * from './models/RefreshToken'
+export type * from './models/Conversation'
+export type * from './models/ConversationParticipant'
+export type * from './models/Message'
+export type * from './models/MessageRead'
 export type * from './commonInputTypes'
